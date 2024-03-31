@@ -1,17 +1,25 @@
 ﻿using System.Reflection;
 using AvitoService.Core.Common.Abstract;
+using AvitoService.Core.Common.Behaviors;
+using AvitoService.Core.Common.Handlers;
+using FluentValidation;
+using MediatR.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AvitoService.Core;
 
 public static class CoreRegistration
 {
-    public static IServiceCollection AddCore(this IServiceCollection services)
-    {
-        services.AddRepositories();
-        
-        return services;
-    }
+    public static IServiceCollection AddCore(this IServiceCollection services) => services
+        .AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(CoreRegistration).Assembly);
+            cfg.AddOpenBehavior(typeof(GlobalLoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(GlobalValidationBehavior<,>));
+        })
+        .AddTransient(typeof(IRequestExceptionHandler<,,>), typeof(GlobalRequestExceptionHandler<,,>))
+        .AddValidatorsFromAssemblyContaining(typeof(CoreRegistration))
+        .AddRepositories();
     
     private static IServiceCollection AddRepositories(this IServiceCollection services) =>
         services.AddRegistrationsByInterfaceType(typeof(IRepository));
