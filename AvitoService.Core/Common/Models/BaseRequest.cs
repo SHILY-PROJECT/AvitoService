@@ -1,6 +1,6 @@
 namespace AvitoService.Core.Common.Models;
 
-public class BaseRequest
+public abstract class BaseRequest
 {
     public Guid RequestId { get; set; }  = Guid.NewGuid();
 }
